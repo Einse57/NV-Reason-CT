@@ -16,3 +16,17 @@ wandb/
 
 # Public example volumes (tracked with Git LFS)
 !/examples/*.nii.gz
+
+# OpenVINO / export artifacts (do not commit multi-GB weights)
+openvino/ir/
+openvino/hf_src/
+openvino/hf_lm_only/
+openvino/.venv/
+openvino/**/*.safetensors
+openvino/**/*.bin
+openvino/**/*.onnx
+openvino/**/*.npy
+openvino/**/*.npz
+openvino/**/*.pt
+openvino/logs/
+*.safetensors

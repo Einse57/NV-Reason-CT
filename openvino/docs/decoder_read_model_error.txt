@@ -1,0 +1,22 @@
+Exception from src/inference/src/cpp/core.cpp:84:
+Check 'false' failed at src/frontends/common_translators/src/unconverted_ops_report.cpp:151:
+FrontEnd API failed with OpConversionFailure:
+Model wasn't fully converted. Failed operations detailed log:
+-- LpNormalization-22 with a message:
+While validating ONNX node '<Node(LpNormalization): /model/layers.0/linear_attn/q_l2norm/LpNormalization/output_0>': Exception from src/core/shape_inference/include/element_visitor.hpp:150:
+Element not supported
+
+-- SimplifiedLayerNormalization-22 with a message:
+Check '(X.get_element_type() == scale.get_element_type())' failed at src/frontends/onnx/frontend/src/op/com.microsoft/simplified_layer_normalization.cpp:34:
+While validating ONNX node '<Node(SimplifiedLayerNormalization): /model/layers.3/attn/q_norm/SimplifiedLayerNormalization/output_0>':
+X and scale must be of same type, got :dynamicf32
+
+-- com.microsoft.SkipSimplifiedLayerNormalization with a message:
+Check '(input_tensor.get_element_type() == skip.get_element_type())' failed at src/frontends/onnx/frontend/src/op/com.microsoft/skip_simplified_layer_normalization.cpp:36:
+While validating ONNX node '<Node(SkipSimplifiedLayerNormalization): /model/layers.0/post_attention_layernorm/output_0>':
+input tensor and skip must be of same type, got :f32dynamic
+
+Summary:
+-- No conversion rule found for operations: com.microsoft.CausalConvWithState, com.microsoft.GatedRMSNorm, com.microsoft.LinearAttention, com.microsoft.LinearAttentionGate, com.microsoft.MRotaryEmbedding
+-- Conversion is failed for: LpNormalization-22, SimplifiedLayerNormalization-22, com.microsoft.SkipSimplifiedLayerNormalization
+
