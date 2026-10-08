@@ -1,0 +1,18 @@
+{
+ "host": "Core Ultra 9 285H (64 GB)",
+ "openvino": "2026.4.1-22982-e213a147257-releases/2026/4",
+ "torch": "2.14.1+cpu",
+ "input": [
+  1,
+  1,
+  192,
+  192,
+  192
+ ],
+ "output": "[13824,2560]",
+ "load_s": 10.53,
+ "convert_s": 429.74,
+ "save_s": 0.61,
+ "peak_rss_mb": 3020.5,
+ "bin_mb": 568.5
+}

@@ -9,7 +9,7 @@ Sources:
 - https://huggingface.co/nvidia/NV-Reason-CT (card: OpenMDW-1.1)
 - https://github.com/NVIDIA-Medtech/NV-Reason-CT (`LICENSE`)
 - Canonical text: https://github.com/OpenMDW/OpenMDW/blob/main/1.1/LICENSE.OpenMDW-1.1
-- Local copy: `docs/LICENSE.OpenMDW-1.1` and repo root `LICENSE`
+- Local copy: repo root `LICENSE`
 
 Community ONNX port weights (`jarrelscy/nv-reason-ct-onnx`) are also OpenMDW-1.1 (derived). The `nv-reason-ct-web` **application** code is MIT; that does **not** re-license the model weights.
 
@@ -46,4 +46,10 @@ NV-Reason-CT is an **open research and development foundation**, **not** an auto
 | Generated OpenVINO IR / compressed weights | **Derivatives of Model Materials → OpenMDW-1.1**; ship `LICENSE` + notices; do not commit multi-GB binaries to git by default |
 | Tokenizer files copied from HF | Part of Model Materials → OpenMDW-1.1 |
 
-**Do not** push multi-gigabyte `.bin` / `.safetensors` / ONNX external data to GitHub. Document download + export commands instead (see `openvino/README.md`).
+**Do not** push multi-gigabyte `.bin` / `.safetensors` / ONNX external data to GitHub. Document download + export commands instead (see [`../README.md`](../README.md)).
+
+## Test data used for the results in `RESULTS.md`
+
+One CT volume from the TotalSegmentator CT dataset v2.0.1 (CC BY 4.0), used
+for measurement only and not redistributed here. See `RESULTS.md` for the
+citation.

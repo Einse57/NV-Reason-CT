@@ -1,58 +1,81 @@
-# OpenVINO export notes for NV-Reason-CT
+# OpenVINO tooling for NV-Reason-CT
 
-**Branch purpose:** CPU / OpenVINO paths for the Primus 3D CT encoder and (when feasible) the Qwen3.5-4B hybrid decoder, via **optimum-intel / OpenVINO GenAI / NNCF** — **not** the community WebGPU/ORT-genai ONNX port as the primary target.
+Scripts to run the NV-Reason-CT 3D CT encoder (Primus ViT + merger) with
+OpenVINO, check it against the PyTorch reference, and an experimental export
+of the Qwen3.5 text tower with optimum-intel. Nothing here changes the default
+PyTorch inference path; all dependencies are optional.
 
-## License
+Research and development use only; not for clinical diagnosis. Model materials
+and their derivatives (including OpenVINO IR) are OpenMDW-1.1; see
+[`docs/LICENSE_AND_DISTRIBUTION.md`](docs/LICENSE_AND_DISTRIBUTION.md).
 
-Model materials: **OpenMDW-1.1**. See [`docs/LICENSE_AND_DISTRIBUTION.md`](docs/LICENSE_AND_DISTRIBUTION.md) and repo root `LICENSE`. Retain license + copyright notices when distributing IR or quantized weights.
+## Status
 
-**Not for clinical diagnosis.** Research / developer foundation only.
+| Component | Status |
+|---|---|
+| Encoder, FP32 IR from `nvidia/NV-Reason-CT` | Exports; matches PyTorch FP32 on CPU and Intel GPU (cosine ≥ 0.99999999998) |
+| Encoder on Intel NPU | Did not compile within 15 minutes on Core Ultra 9 285H or Core Ultra 7 265F |
+| Text tower (Qwen3.5 hybrid) via optimum-intel, INT8 weights | Exports (experimental); 32/32 greedy tokens match PyTorch FP32 on one CT case |
+| Full report generation in OpenVINO (3D M-RoPE positions) | Not implemented; see [`docs/DECODER.md`](docs/DECODER.md) |
 
-## Status (2026-10-06 box)
+Measured agreement and timing: [`docs/RESULTS.md`](docs/RESULTS.md).
 
-| Component | OpenVINO status | Notes |
-|---|---|---|
-| 3D encoder (Primus + merger) | **Works (CPU)** | IR from community int8 ONNX via `ov.convert_model`; cosine ≈ **0.9997** vs upstream FP32 torch (zero volume) |
-| Decoder (Qwen3.5 hybrid) | **Blocked** | Community ONNX: missing `com.microsoft.LinearAttention*` etc. Upstream optimum export: custom VLM3D + RAM; see [`BLOCKER.md`](BLOCKER.md) |
-| Full report E2E | Not on this box | Published baseline: **RTX PRO 6000 ~25 s/report** (GPU). Box benches are **non-target / encoder-only**. |
-
-## One-command encoder bench (box-only / non-target)
-
-```bash
-python openvino/scripts/bench_encoder_ov_cpu.py \
-  --model path/to/vision.xml --runs 5 --out openvino/benches/encoder_ov_cpu.json
-```
-
-Labels every run as **box-only / non-target**. Do not compare encoder-only CPU ms to the 25 s/report GPU baseline.
-
-## Reproduce encoder IR
+## Setup
 
 ```bash
-# 1) Download community encoder ONNX (OpenMDW-1.1 derived) OR export FP32 on a large-RAM host
-# 2) Convert
-python openvino/scripts/export_encoder_ov.py --onnx /path/to/vision.onnx --out-dir openvino/ir/encoder
-# 3) Smoke
-python openvino/scripts/smoke_encoder_ov.py --model openvino/ir/encoder/vision.xml
+pip install -r requirements.txt -r openvino/requirements-openvino.txt
+# local snapshot of the model (about 10.6 GB)
+huggingface-cli download nvidia/NV-Reason-CT --local-dir /path/to/NV-Reason-CT
 ```
 
-Upstream FP32 export helper (needs ≥32 GiB RAM typically):
+## Encoder
 
 ```bash
-# After downloading nvidia/NV-Reason-CT model.safetensors into hf_src/
-python openvino/scripts/export_encoder_minimal.py
+# 1. FP32 IR: volume [1,1,192,192,192] -> tokens [13824,2560]
+python openvino/scripts/export_encoder_fp32.py --model-dir /path/to/NV-Reason-CT \
+    --out-dir openvino/ir/encoder_fp32
+
+# 2. Agreement vs PyTorch FP32 CPU (each device in its own process, compile capped)
+python openvino/scripts/agreement_encoder.py --model-dir /path/to/NV-Reason-CT \
+    --ir openvino/ir/encoder_fp32/vision_fp32.xml --devices CPU GPU NPU --gpu-large-alloc \
+    --input ct.nii.gz:chest --input synthetic:0 --out agreement.json
+
+# 3. Timing, one backend per process
+python openvino/scripts/bench_encoder.py --backend torch --model-dir /path/to/NV-Reason-CT --runs 5
+python openvino/scripts/bench_encoder.py --backend ov --device CPU \
+    --ir openvino/ir/encoder_fp32/vision_fp32.xml --runs 5
 ```
 
-## Decoder attempt (large RAM)
+`agreement_encoder.py` and `bench_encoder.py` pin `INFERENCE_PRECISION_HINT=f32`
+on CPU and GPU. On Intel GPU, FP32 needs `--gpu-large-alloc`
+(`GPU_ENABLE_LARGE_ALLOCATIONS=YES`): the attention scores for 13,824 tokens
+(12 heads × 13,824² × 4 bytes ≈ 9.2 GB) exceed the default 4 GB allocation limit.
+Inputs can be `synthetic[:seed]`, a preprocessed `.npy`, or a NIfTI volume, which
+is preprocessed with the upstream `ImageLoader3D` (`:chest` or `:abdomen` crop).
+
+## Text tower (experimental)
+
+Use a separate environment (`openvino/requirements-decoder-export.txt`):
+optimum-intel 2.2.0 only exports `qwen3_5` with transformers 5.2.x, while
+upstream inference pins transformers 5.6.2.
 
 ```bash
-# Extract language_model.* + lm_head from HF safetensors into hf_lm_only/ (model_type=qwen3_5_text)
-python openvino/scripts/try_export_decoder_optimum.py \
-  -m ./hf_lm_only --out openvino/ir/decoder_int4 --weight-format int4 \
-  --task text-generation-with-past   # or image-text-to-text for full qwen3_5 VLM
+python openvino/scripts/extract_text_tower.py --model-dir /path/to/NV-Reason-CT --out-dir hf_lm_only
+python openvino/scripts/try_export_decoder_optimum.py -m hf_lm_only \
+    --out openvino/ir/decoder_int8 --weight-format int8
 ```
 
-Honest expectation: hybrid GatedDeltaNet layers need current OVGenAI hybrid-cache support; INT4 quality on larger Qwen3.5 hybrids can degrade (optimum-intel#1722). Prefer int8 or mixed precision for GatedDeltaNet if incoherent.
+`decoder_token_match.py` compares greedy decoding of the exported text tower
+against PyTorch on the same `inputs_embeds` (CT encoder tokens spliced in). See
+[`docs/DECODER.md`](docs/DECODER.md) for what it does and does not cover.
 
-## Do not commit
+## Tests
 
-Multi-GB `.bin` / `.safetensors` / ONNX external data — gitignored. Document download + export instead.
+```bash
+pytest openvino/tests   # skipped when openvino or torch is not installed
+```
+
+## Artifacts
+
+IR, weights and intermediate arrays are not committed (`.gitignore`). The FP32
+encoder IR is about 597 MB; the INT8 text-tower IR is about 4.2 GB.
