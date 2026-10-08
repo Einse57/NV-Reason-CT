@@ -19,6 +19,7 @@ import argparse
 import json
 import os
 import platform
+import re
 import subprocess
 import sys
 import time
@@ -138,7 +139,9 @@ def main() -> None:
             if spec.endswith((":chest", ":abdomen"))
             else (spec, "", "")
         )
-        tag = f"in{k}"
+        tag = f"in{k}_" + re.sub(
+            r"[^A-Za-z0-9]+", "_", Path(path).name + (region or "")
+        )
         x = load_input(path, args.model_dir, region or "chest")
         in_npy = work / f"{tag}_input.npy"
         np.save(in_npy, x)
