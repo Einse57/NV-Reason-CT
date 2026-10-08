@@ -1,0 +1,8 @@
+# Separate environment for the experimental decoder export only.
+# optimum-intel 2.2.0 caps transformers at 5.2.* for qwen3_5 export, which
+# conflicts with the upstream transformers==5.6.2 pin, so keep this apart.
+torch
+optimum-intel[openvino]==2.2.0
+transformers==5.2.*
+openvino==2026.4.*
+nncf>=3.4
