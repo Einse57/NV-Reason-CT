@@ -16,6 +16,7 @@ and their derivatives (including OpenVINO IR) are OpenMDW-1.1; see
 | Encoder, FP32 IR from `nvidia/NV-Reason-CT` | Exports; matches PyTorch FP32 on CPU and Intel GPU (cosine ≥ 0.99999999998) |
 | Encoder on Intel NPU | Did not compile within 15 minutes on Core Ultra 9 285H or Core Ultra 7 265F |
 | Text tower (Qwen3.5 hybrid) via optimum-intel, INT8 weights | Exports (experimental); 32/32 greedy tokens match PyTorch FP32 on one CT case |
+| Encoder in PyTorch on Intel GPU (`xpu`), fp16/bf16 | Runs on Arc 140T iGPU; fp16 1 − cosine 1.3e-06 vs PyTorch FP32 CPU. f32 does not fit the 4 GiB allocation limit |
 | Full report generation in OpenVINO (3D M-RoPE positions) | Not implemented; see [`docs/DECODER.md`](docs/DECODER.md) |
 
 Measured agreement and timing: [`docs/RESULTS.md`](docs/RESULTS.md).
@@ -44,10 +45,16 @@ python openvino/scripts/agreement_encoder.py --model-dir /path/to/NV-Reason-CT \
 python openvino/scripts/bench_encoder.py --backend torch --model-dir /path/to/NV-Reason-CT --runs 5
 python openvino/scripts/bench_encoder.py --backend ov --device CPU \
     --ir openvino/ir/encoder_fp32/vision_fp32.xml --runs 5
+# PyTorch on Intel GPU (torch XPU wheels), optionally with --compile
+python openvino/scripts/bench_encoder.py --backend torch --torch-device xpu \
+    --torch-dtype fp16 --model-dir /path/to/NV-Reason-CT --runs 5
 ```
 
 `agreement_encoder.py` and `bench_encoder.py` pin `INFERENCE_PRECISION_HINT=f32`
-on CPU and GPU. On Intel GPU, FP32 needs `--gpu-large-alloc`
+on CPU and GPU by default (`bench_encoder.py --ov-precision f16` for GPU f16).
+On hybrid Intel CPUs the CPU plugin's default latency mode uses only the P-cores
+(6 threads on the Core Ultra 9 285H); set `INFERENCE_NUM_THREADS`
+(`--ov-threads`) to use the E-cores too. On Intel GPU, FP32 needs `--gpu-large-alloc`
 (`GPU_ENABLE_LARGE_ALLOCATIONS=YES`): the attention scores for 13,824 tokens
 (12 heads × 13,824² × 4 bytes ≈ 9.2 GB) exceed the default 4 GB allocation limit.
 Inputs can be `synthetic[:seed]`, a preprocessed `.npy`, or a NIfTI volume, which

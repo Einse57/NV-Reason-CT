@@ -6,7 +6,7 @@ Draft on the Einse57 fork only.
 
 - `scripts/export_encoder_fp32.py`: exports the upstream 3D encoder (Primus ViT + merger) from `nvidia/NV-Reason-CT` to FP32 OpenVINO IR (`volume` [1,1,192,192,192] → `tokens` [13824,2560]), directly from PyTorch.
 - `scripts/agreement_encoder.py`: compares OpenVINO devices with the PyTorch FP32 CPU reference on real CT and synthetic input. Each device runs in its own process with a compile timeout.
-- `scripts/bench_encoder.py`: times one backend per process (load/compile, first run, mean/p50/min, peak RSS).
+- `scripts/bench_encoder.py`: times one backend per process (load/compile, first run, mean/p50/min, peak RSS, optional agreement with `--ref`). PyTorch can run on CPU or Intel GPU (`--torch-device xpu`, `--torch-dtype fp16|bf16`, optional `--compile`); OpenVINO takes `--ov-precision` and `--ov-threads`.
 - `scripts/extract_text_tower.py`, `scripts/try_export_decoder_optimum.py`, `scripts/decoder_token_match.py`: experimental INT8 export of the Qwen3.5 text tower with optimum-intel, plus a greedy token-match check against PyTorch.
 - `tests/test_encoder_openvino_agreement.py`: a small random-init Primus round trip through OpenVINO. It is skipped when openvino or torch is not installed.
 - Optional dependency files: `requirements-openvino.txt` and `requirements-decoder-export.txt`. The default PyTorch inference path is unchanged.
@@ -19,7 +19,7 @@ Research and development use only; not for clinical diagnosis. The IR is derived
 - Intel Core Ultra 9 285H, 64 GB: CPU, Arc 140T iGPU, NPU
 - Intel Core Ultra 7 265F, 64 GB: CPU, NPU
 
-Software: OpenVINO 2026.4.1, torch 2.14.1+cpu, transformers 5.6.2 (for the decoder export, 5.2.0 with optimum-intel 2.2.0), Windows 11.
+Software: OpenVINO 2026.4.1, torch 2.14.1+cpu (XPU rows: 2.14.1+xpu), transformers 5.6.2 (for the decoder export, 5.2.0 with optimum-intel 2.2.0), Windows 11.
 
 Test CT: TotalSegmentator CT v2.0.1, case s0050 (CC BY 4.0, doi:10.5281/zenodo.10047292), with chest and abdomen crops from the upstream `ImageLoader3D`.
 
@@ -52,6 +52,27 @@ CPU and GPU used `INFERENCE_PRECISION_HINT=f32`. The GPU also needs `GPU_ENABLE_
 | Core Ultra 7 265F (64 GB) | PyTorch, CPU (20 threads) | f32 | 5.3 | 12.7 | 16.4 | 16.4 | 16.1 | 1.7 |
 | Core Ultra 7 265F (64 GB) | OpenVINO, CPU | f32 | 3.0 | 21.6 | 21.9 | 21.9 | 21.8 | 7.7 |
 | Core Ultra 7 265F (64 GB) | OpenVINO, NPU | default | not compiled within 15 min | — | — | — | — | — |
+
+OpenVINO CPU threads: on the 285H the default `LATENCY` hint uses the 6 P-cores. With `INFERENCE_NUM_THREADS=14` the CPU row runs in 21.3 s instead of 26.8 s (2026-10-08 session below). Peak RSS is unchanged.
+
+## PyTorch XPU and OpenVINO GPU f16 (Core Ultra 9 285H, 2026-10-08)
+
+One interactive desktop session with no other GPU load, using torch 2.14.1+xpu and OpenVINO 2026.4.1. Agreement is against the PyTorch FP32 CPU reference.
+
+| Backend / device | Precision | First run (s) | p50 (s) | Peak RSS (GiB) | 1 − cosine | Rel. L2 |
+|---|---|---|---|---|---|---|
+| PyTorch, CPU (16 threads) | f32 | 22.4 | 22.38 | 2.8 | 9.7e-14 | 0 |
+| PyTorch, XPU (Arc 140T iGPU) | fp16 | 2.9 | 2.55 | 3.6 | 1.3e-06 | 1.6e-03 |
+| PyTorch, XPU (Arc 140T iGPU) | bf16 | 2.9 | 2.52 | 3.6 | 7.8e-05 | 1.2e-02 |
+| PyTorch, XPU, `torch.compile` | fp16 | 56.9 (incl. compile) | 2.57 | 3.5 | 1.2e-06 | 1.5e-03 |
+| PyTorch, XPU, `torch.compile` | bf16 | 53.2 (incl. compile) | 2.57 | 3.5 | 7.4e-05 | 1.2e-02 |
+| OpenVINO, CPU (default, 6 threads) | f32 | 26.8 | 26.81 | 8.2 | 6.7e-13 | 1.1e-06 |
+| OpenVINO, CPU (`INFERENCE_NUM_THREADS=14`) | f32 | 21.2 | 21.32 | 8.3 | 6.7e-13 | 1.1e-06 |
+| OpenVINO, Arc 140T iGPU | f16 | 2.4 | 2.45 | 3.4 | 1.7e-06 | 1.9e-03 |
+| OpenVINO, Arc 140T iGPU (large alloc) | f32 | 18.8 | 18.80 | 20.4 | 1.1e-11 | 4.6e-06 |
+
+- PyTorch XPU f32 does not run: the f32 attention needs one 8.54 GiB allocation, above the 4 GiB limit. With relaxed allocation limits it runs, but the output is wrong (rel. L2 1.15).
+- `torch.compile` on Windows needs MSVC (VS 2022 Build Tools, C++ workload). Run the compiled encoder under `torch.no_grad()`: under `torch.inference_mode()` Dynamo fails with a guard error on the drop-path attribute.
 
 ## Text tower (experimental)
 

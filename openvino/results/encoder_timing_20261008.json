@@ -1,0 +1,392 @@
+{
+ "date": "2026-10-08",
+ "session": "interactive desktop session 23:09-23:39 PT, one process per row, no other GPU load",
+ "input": "CT s0050 chest crop [1,1,192,192,192]",
+ "runs_after_first": 5,
+ "agreement_reference": "PyTorch FP32 CPU output on the same host and input (encoder_agreement.json run)",
+ "software": {
+  "torch": "2.14.1+xpu",
+  "openvino": "2026.4.1",
+  "transformers": "5.6.2",
+  "msvc": "14.44 (torch.compile only)",
+  "os": "Windows 11"
+ },
+ "rows": [
+  {
+   "backend": "torch",
+   "device": "CPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "torch": "2.14.1+xpu",
+   "torch_threads": 16,
+   "precision": "f32",
+   "compile": false,
+   "load_or_compile_s": 5.654408500005957,
+   "first_run_s": 22.35965510000824,
+   "agreement": {
+    "cosine": 0.9999999999999029,
+    "token_cosine_min": 0.9999999999999825,
+    "token_cosine_mean": 0.9999999999999923,
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0,
+    "ref_abs_max": 3.073915958404541
+   },
+   "times_s": [
+    23.718084799998906,
+    22.744601900019916,
+    22.368773199996212,
+    22.37686560000293,
+    22.317933000013
+   ],
+   "mean_s": 22.705251700006194,
+   "p50_s": 22.37686560000293,
+   "min_s": 22.317933000013,
+   "peak_rss_mb": 2871.203125,
+   "host": "Core Ultra 9 285H (64 GB)",
+   "case": "torch_cpu_f32"
+  },
+  {
+   "backend": "torch",
+   "device": "xpu",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "torch": "2.14.1+xpu",
+   "torch_threads": 16,
+   "precision": "fp16",
+   "compile": false,
+   "device_name": "Intel(R) Arc(TM) 140T GPU (32GB)",
+   "load_or_compile_s": 6.4369439000147395,
+   "first_run_s": 2.8768230999994557,
+   "agreement": {
+    "cosine": 0.9999987396301814,
+    "token_cosine_min": 0.999992368368001,
+    "token_cosine_mean": 0.9999987242654437,
+    "max_abs": 0.004128217697143555,
+    "mean_abs": 0.0002925665772094081,
+    "rel_l2": 0.001587727522582237,
+    "ref_abs_max": 3.073915958404541
+   },
+   "times_s": [
+    2.5484826999891084,
+    2.5472609999997076,
+    2.544784099998651,
+    2.5527262999967206,
+    2.5501056000066455
+   ],
+   "mean_s": 2.5486719399981665,
+   "p50_s": 2.5484826999891084,
+   "min_s": 2.544784099998651,
+   "peak_rss_mb": 3727.86328125,
+   "host": "Core Ultra 9 285H (64 GB)",
+   "case": "torch_xpu_fp16"
+  },
+  {
+   "backend": "torch",
+   "device": "xpu",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "torch": "2.14.1+xpu",
+   "torch_threads": 16,
+   "precision": "bf16",
+   "compile": false,
+   "device_name": "Intel(R) Arc(TM) 140T GPU (32GB)",
+   "load_or_compile_s": 5.3825431000150274,
+   "first_run_s": 2.918090299994219,
+   "agreement": {
+    "cosine": 0.9999218873500294,
+    "token_cosine_min": 0.9993628491685291,
+    "token_cosine_mean": 0.9999198893308152,
+    "max_abs": 0.02794647216796875,
+    "mean_abs": 0.0023053635076357194,
+    "rel_l2": 0.012499327530407793,
+    "ref_abs_max": 3.073915958404541
+   },
+   "times_s": [
+    2.517208400007803,
+    2.4994695999776013,
+    2.529397699981928,
+    2.524516200006474,
+    2.508816600020509
+   ],
+   "mean_s": 2.515881699998863,
+   "p50_s": 2.517208400007803,
+   "min_s": 2.4994695999776013,
+   "peak_rss_mb": 3677.0234375,
+   "host": "Core Ultra 9 285H (64 GB)",
+   "case": "torch_xpu_bf16"
+  },
+  {
+   "backend": "torch",
+   "device": "xpu",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "torch": "2.14.1+xpu",
+   "torch_threads": 16,
+   "precision": "fp16",
+   "compile": true,
+   "device_name": "Intel(R) Arc(TM) 140T GPU (32GB)",
+   "load_or_compile_s": 6.040240899979835,
+   "first_run_s": 56.90831850000541,
+   "agreement": {
+    "cosine": 0.9999988161601658,
+    "token_cosine_min": 0.9999920341559475,
+    "token_cosine_mean": 0.9999987962052593,
+    "max_abs": 0.003909051418304443,
+    "mean_abs": 0.0002837453572738256,
+    "rel_l2": 0.0015387960083427573,
+    "ref_abs_max": 3.073915958404541
+   },
+   "times_s": [
+    2.5665138000040315,
+    2.58610809998936,
+    2.5398266999982297,
+    2.5662876999995206,
+    2.5295274000091013
+   ],
+   "mean_s": 2.557652740000049,
+   "p50_s": 2.5662876999995206,
+   "min_s": 2.5295274000091013,
+   "peak_rss_mb": 3609.0703125,
+   "host": "Core Ultra 9 285H (64 GB)",
+   "case": "torch_xpu_fp16_compile"
+  },
+  {
+   "backend": "torch",
+   "device": "xpu",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "torch": "2.14.1+xpu",
+   "torch_threads": 16,
+   "precision": "bf16",
+   "compile": true,
+   "device_name": "Intel(R) Arc(TM) 140T GPU (32GB)",
+   "load_or_compile_s": 7.018565600010334,
+   "first_run_s": 53.21529389999341,
+   "agreement": {
+    "cosine": 0.9999261087387357,
+    "token_cosine_min": 0.9991609543294536,
+    "token_cosine_mean": 0.9999226658437288,
+    "max_abs": 0.030064657330513,
+    "mean_abs": 0.0022392195400248423,
+    "rel_l2": 0.012156388182711657,
+    "ref_abs_max": 3.073915958404541
+   },
+   "times_s": [
+    2.5049921000027098,
+    2.5765493000217248,
+    2.566873600007966,
+    2.566093599976739,
+    2.5555053999996744
+   ],
+   "mean_s": 2.5540028000017627,
+   "p50_s": 2.566093599976739,
+   "min_s": 2.5049921000027098,
+   "peak_rss_mb": 3623.16796875,
+   "host": "Core Ultra 9 285H (64 GB)",
+   "case": "torch_xpu_bf16_compile"
+  },
+  {
+   "backend": "ov",
+   "device": "CPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "openvino": "2026.4.1-22982-e213a147257-releases/2026/4",
+   "precision": "f32",
+   "config": {
+    "INFERENCE_PRECISION_HINT": "f32"
+   },
+   "device_name": "Intel(R) Core(TM) Ultra 9 285H",
+   "ov_threads_used": 6,
+   "load_or_compile_s": 2.7966329000191763,
+   "first_run_s": 26.830972900002962,
+   "agreement": {
+    "cosine": 0.9999999999993332,
+    "token_cosine_min": 0.9999999999944238,
+    "token_cosine_mean": 0.9999999999993782,
+    "max_abs": 2.86102294921875e-06,
+    "mean_abs": 1.974968644612317e-07,
+    "rel_l2": 1.064773919548764e-06,
+    "ref_abs_max": 3.073915958404541
+   },
+   "times_s": [
+    26.75229970001965,
+    26.811717999982648,
+    26.863836700009415,
+    26.933248699991964,
+    26.805354899988743
+   ],
+   "mean_s": 26.833291599998482,
+   "p50_s": 26.811717999982648,
+   "min_s": 26.75229970001965,
+   "peak_rss_mb": 8438.60546875,
+   "host": "Core Ultra 9 285H (64 GB)",
+   "case": "ov_cpu_f32"
+  },
+  {
+   "backend": "ov",
+   "device": "CPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "openvino": "2026.4.1-22982-e213a147257-releases/2026/4",
+   "precision": "f32",
+   "config": {
+    "INFERENCE_PRECISION_HINT": "f32",
+    "INFERENCE_NUM_THREADS": 14
+   },
+   "device_name": "Intel(R) Core(TM) Ultra 9 285H",
+   "ov_threads_used": 14,
+   "load_or_compile_s": 2.962454999971669,
+   "first_run_s": 21.158896900014952,
+   "agreement": {
+    "cosine": 0.9999999999993332,
+    "token_cosine_min": 0.9999999999944238,
+    "token_cosine_mean": 0.9999999999993782,
+    "max_abs": 2.86102294921875e-06,
+    "mean_abs": 1.974968644612317e-07,
+    "rel_l2": 1.064773919548764e-06,
+    "ref_abs_max": 3.073915958404541
+   },
+   "times_s": [
+    21.29054119999637,
+    21.36836009999388,
+    21.206816599995364,
+    21.324628999980632,
+    21.31781989999581
+   ],
+   "mean_s": 21.30163335999241,
+   "p50_s": 21.31781989999581,
+   "min_s": 21.206816599995364,
+   "peak_rss_mb": 8465.55078125,
+   "host": "Core Ultra 9 285H (64 GB)",
+   "case": "ov_cpu_f32_t14"
+  },
+  {
+   "backend": "ov",
+   "device": "GPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "openvino": "2026.4.1-22982-e213a147257-releases/2026/4",
+   "precision": "f16",
+   "config": {
+    "INFERENCE_PRECISION_HINT": "f16"
+   },
+   "device_name": "Intel(R) Arc(TM) 140T GPU (32GB) (iGPU)",
+   "load_or_compile_s": 2.110466100013582,
+   "first_run_s": 2.4485433000081684,
+   "agreement": {
+    "cosine": 0.9999982574300126,
+    "token_cosine_min": 0.9999767536706452,
+    "token_cosine_mean": 0.9999983304398925,
+    "max_abs": 0.005075603723526001,
+    "mean_abs": 0.00033567054507019703,
+    "rel_l2": 0.0018669051173538702,
+    "ref_abs_max": 3.073915958404541
+   },
+   "times_s": [
+    2.448306100006448,
+    2.4551205999741796,
+    2.4545093000051565,
+    2.4492075000016484,
+    2.4516784000152256
+   ],
+   "mean_s": 2.4517643800005318,
+   "p50_s": 2.4516784000152256,
+   "min_s": 2.448306100006448,
+   "peak_rss_mb": 3458.94140625,
+   "host": "Core Ultra 9 285H (64 GB)",
+   "case": "ov_gpu_f16"
+  },
+  {
+   "backend": "ov",
+   "device": "GPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "openvino": "2026.4.1-22982-e213a147257-releases/2026/4",
+   "precision": "f32",
+   "config": {
+    "INFERENCE_PRECISION_HINT": "f32",
+    "GPU_ENABLE_LARGE_ALLOCATIONS": "YES"
+   },
+   "device_name": "Intel(R) Arc(TM) 140T GPU (32GB) (iGPU)",
+   "load_or_compile_s": 5.855339699977776,
+   "first_run_s": 18.836686899972847,
+   "agreement": {
+    "cosine": 0.999999999989415,
+    "token_cosine_min": 0.9999999995797464,
+    "token_cosine_mean": 0.9999999999861214,
+    "max_abs": 2.7418136596679688e-05,
+    "mean_abs": 7.766153297361531e-07,
+    "rel_l2": 4.581268149103938e-06,
+    "ref_abs_max": 3.073915958404541
+   },
+   "times_s": [
+    18.95344019998447,
+    18.795689999999013,
+    18.784417199989548,
+    18.78392790001817,
+    18.872704600013094
+   ],
+   "mean_s": 18.83803598000086,
+   "p50_s": 18.795689999999013,
+   "min_s": 18.78392790001817,
+   "peak_rss_mb": 20847.2578125,
+   "host": "Core Ultra 9 285H (64 GB)",
+   "case": "ov_gpu_f32"
+  }
+ ]
+}
