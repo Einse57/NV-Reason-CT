@@ -81,6 +81,35 @@ For inference:
 uv pip install -r requirements.txt
 ```
 
+### Intel GPUs (XPU)
+
+Inference also runs on Intel GPUs through PyTorch's `xpu` device. Install the
+PyTorch XPU wheels first, then the inference requirements:
+
+```bash
+uv pip install torch --index-url https://download.pytorch.org/whl/xpu
+uv pip install -r requirements.txt
+```
+
+`inference.py` uses the first available of `cuda`, `xpu` and `cpu`; use
+`--device` and `--dtype` to choose explicitly. The default dtype is bfloat16 on
+GPUs and float32 on CPU. To check the 3D encoder on a device against a float32
+CPU reference:
+
+```bash
+python scripts/check_encoder_device.py examples/example_1.nii.gz \
+  --region chest --device xpu --dtype bfloat16
+```
+
+On XPU, `inference.py` runs the decoding-step attention in float32. With
+PyTorch 2.14.1+xpu, half-precision `scaled_dot_product_attention` returns wrong
+values when the head dimension is above 128 and the query is shorter than the
+key. That case covers every decoding step of the 256-dim attention layers.
+
+Tested on an Intel Core Ultra 9 285H with Intel Arc 140T integrated graphics
+(Windows 11, PyTorch 2.14.1+xpu, Transformers 5.6.2). See
+[Intel GPU results](#intel-gpu-results).
+
 For training:
 
 ```bash
@@ -521,6 +550,25 @@ training strategy introduced in
 [NV-Reason-CXR](https://github.com/NVIDIA-Medtech/NV-Reason-CXR).
 
 ![NV](assets/collab_logos.png)
+
+## Intel GPU results
+
+Measured on an Intel Core Ultra 9 285H (64 GB) with Intel Arc 140T integrated
+graphics, Windows 11, PyTorch 2.14.1+xpu. Input: TotalSegmentator CT v2.0.1
+case `s0050` (CC BY 4.0,
+[10.5281/zenodo.10047292](https://doi.org/10.5281/zenodo.10047292)).
+
+3D encoder vs. float32 on CPU (`scripts/check_encoder_device.py`):
+
+| Device | Dtype | Crop | 1 − cosine | 1 − min per-token cosine | Rel. L2 |
+|---|---|---|---|---|---|
+| xpu | float16 | chest | 1.3e-06 | 7.6e-06 | 1.6e-03 |
+| xpu | bfloat16 | chest | 7.8e-05 | 6.4e-04 | 1.2e-02 |
+| xpu | bfloat16 | abdomen | 8.2e-05 | 4.2e-04 | 1.3e-02 |
+
+`inference.py` with the default chest report prompt, `--disable-thinking` and
+`--max-new-tokens 160` produced the same text on `xpu` (bfloat16) as on
+`cpu` (float32).
 
 ## License
 
