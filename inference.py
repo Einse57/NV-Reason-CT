@@ -6,7 +6,14 @@ import argparse
 import sys
 
 import torch
-from transformers import AutoModelForImageTextToText, AutoProcessor
+from transformers import (
+    AttentionInterface,
+    AttentionMaskInterface,
+    AutoModelForImageTextToText,
+    AutoProcessor,
+)
+from transformers.integrations.sdpa_attention import sdpa_attention_forward
+from transformers.masking_utils import sdpa_mask
 
 
 DEFAULT_MODEL = "nvidia/NV-Reason-CT"
@@ -26,6 +33,30 @@ def select_device(requested):
     if hasattr(torch, "xpu") and torch.xpu.is_available():
         return "xpu"
     return "cpu"
+
+
+def sdpa_xpu_attention_forward(module, query, key, value, attention_mask, **kwargs):
+    """SDPA that runs decoding steps in float32 on XPU.
+
+    With torch 2.14.1+xpu, half-precision SDPA returns wrong values when the
+    head dimension is above 128 and the query is shorter than the key, which is
+    every decoding step of the 256-dim full-attention layers. Prefill is not
+    affected. Decoding steps are small, so they run in float32 here.
+    """
+    if query.dtype == torch.float32 or query.shape[-2] == key.shape[-2]:
+        return sdpa_attention_forward(
+            module, query, key, value, attention_mask, **kwargs
+        )
+    if attention_mask is not None and attention_mask.dtype != torch.bool:
+        attention_mask = attention_mask.float()
+    output, weights = sdpa_attention_forward(
+        module, query.float(), key.float(), value.float(), attention_mask, **kwargs
+    )
+    return output.to(query.dtype), weights
+
+
+AttentionInterface.register("sdpa_xpu", sdpa_xpu_attention_forward)
+AttentionMaskInterface.register("sdpa_xpu", sdpa_mask)
 
 
 def parse_args():
@@ -91,7 +122,7 @@ def main():
         args.model,
         trust_remote_code=True,
         dtype=dtype,
-        attn_implementation="sdpa",
+        attn_implementation="sdpa_xpu" if device == "xpu" else "sdpa",
     ).eval().to(device)
     processor = AutoProcessor.from_pretrained(args.model, trust_remote_code=True)
 
