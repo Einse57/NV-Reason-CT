@@ -3,12 +3,29 @@
 """Run NV-Reason-CT inference on one NIfTI CT volume."""
 
 import argparse
+import sys
 
 import torch
 from transformers import AutoModelForImageTextToText, AutoProcessor
 
 
 DEFAULT_MODEL = "nvidia/NV-Reason-CT"
+DTYPES = {
+    "bfloat16": torch.bfloat16,
+    "float16": torch.float16,
+    "float32": torch.float32,
+}
+
+
+def select_device(requested):
+    """Return the requested device, or the first available of cuda, xpu, cpu."""
+    if requested != "auto":
+        return requested
+    if torch.cuda.is_available():
+        return "cuda"
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        return "xpu"
+    return "cpu"
 
 
 def parse_args():
@@ -36,13 +53,33 @@ def parse_args():
         action="store_true",
         help="Disable thinking mode",
     )
+    parser.add_argument(
+        "--device",
+        choices=("auto", "cuda", "xpu", "cpu"),
+        default="auto",
+        help="Device to run on (default: auto, the first available of cuda, xpu, cpu)",
+    )
+    parser.add_argument(
+        "--dtype",
+        choices=("auto", *DTYPES),
+        default="auto",
+        help="Model dtype (default: auto, bfloat16 on cuda/xpu and float32 on cpu)",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    if not torch.cuda.is_available():
-        raise RuntimeError("NV-Reason-CT inference requires a CUDA-capable GPU")
+    device = select_device(args.device)
+    if args.dtype == "auto":
+        dtype = torch.float32 if device == "cpu" else torch.bfloat16
+    else:
+        dtype = DTYPES[args.dtype]
+    if args.device == "auto" and device == "cpu":
+        print(
+            "No CUDA or XPU device found; running on CPU, which is slow.",
+            file=sys.stderr,
+        )
 
     default_prompts = {
         "chest": "write a structured chest CT report",
@@ -53,9 +90,9 @@ def main():
     model = AutoModelForImageTextToText.from_pretrained(
         args.model,
         trust_remote_code=True,
-        dtype=torch.bfloat16,
+        dtype=dtype,
         attn_implementation="sdpa",
-    ).eval().to("cuda")
+    ).eval().to(device)
     processor = AutoProcessor.from_pretrained(args.model, trust_remote_code=True)
 
     messages = [
