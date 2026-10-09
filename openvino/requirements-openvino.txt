@@ -1,0 +1,5 @@
+# Optional extras for the OpenVINO encoder tooling. Install on top of the
+# upstream requirements.txt (transformers==5.6.2, dynamic-network-architectures, ...).
+openvino==2026.4.*
+psutil
+pytest

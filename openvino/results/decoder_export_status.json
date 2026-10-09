@@ -1,0 +1,14 @@
+{
+ "versions": {
+  "optimum-intel": "2.2.0",
+  "optimum": "2.3.0",
+  "transformers": "5.2.0",
+  "openvino": "2026.4.1",
+  "nncf": "3.4.0",
+  "torch": "2.14.1+cpu"
+ },
+ "task": "text-generation-with-past",
+ "weight_format": "int8",
+ "status": "ok",
+ "elapsed_s": 43.8
+}

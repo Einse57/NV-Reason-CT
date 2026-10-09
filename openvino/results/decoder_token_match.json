@@ -1,0 +1,21 @@
+{
+ "host": "Core Ultra 7 265F (64 GB)",
+ "case": "CT s0050 chest crop",
+ "note": "OpenVINO int8-weight text tower (CPU, f32 hint) vs PyTorch FP32; same inputs_embeds; 1-D positions; ov timings were over SSH and are not benchmarks",
+ "new_tokens": 32,
+ "position_match": 1.0,
+ "first_divergence": null,
+ "prefix_match_len": 32,
+ "first_step_logits_cosine": 0.9985448990626395,
+ "first_step_top1_equal": true,
+ "first_step_top5_overlap": 4,
+ "torch_text": "TECHNIQUE: IV contrast CT.\n\nFINDINGS:\nMedical devices: None present.\n\nCHEST:\nLungs and airways:",
+ "ov_text": "TECHNIQUE: IV contrast CT.\n\nFINDINGS:\nMedical devices: None present.\n\nCHEST:\nLungs and airways:",
+ "ov": {
+  "device": "CPU",
+  "compile_s": 1.3360421999968821,
+  "prefill_s": 282.9036955000047,
+  "total_generate_s": 286.95703499999945,
+  "precision_hint": "f32"
+ }
+}

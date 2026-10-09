@@ -1,0 +1,162 @@
+{
+ "input": "CT s0050 chest crop [1,1,192,192,192]",
+ "runs_after_first": 5,
+ "rows": [
+  {
+   "host": "Core Ultra 9 285H (64 GB)",
+   "backend": "torch",
+   "device": "CPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "torch": "2.14.1+cpu",
+   "torch_threads": 16,
+   "precision": "f32",
+   "load_or_compile_s": 10.21187889999419,
+   "first_run_s": 24.369795300000987,
+   "times_s": [
+    23.897840700003144,
+    23.890277099999366,
+    23.714285500005644,
+    23.905275500001153,
+    23.811482100005378
+   ],
+   "mean_s": 23.843832180002938,
+   "p50_s": 23.890277099999366,
+   "min_s": 23.714285500005644,
+   "peak_rss_mb": 1777.69140625
+  },
+  {
+   "host": "Core Ultra 9 285H (64 GB)",
+   "backend": "ov",
+   "device": "CPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "openvino": "2026.4.1-22982-e213a147257-releases/2026/4",
+   "precision": "f32",
+   "config": {
+    "INFERENCE_PRECISION_HINT": "f32"
+   },
+   "device_name": "Intel(R) Core(TM) Ultra 9 285H",
+   "load_or_compile_s": 2.6080142999999225,
+   "first_run_s": 28.817851300002076,
+   "times_s": [
+    28.31830849999824,
+    28.699436400005652,
+    28.933508599999186,
+    28.575777400001243,
+    28.415339599996514
+   ],
+   "mean_s": 28.588474100000166,
+   "p50_s": 28.575777400001243,
+   "min_s": 28.31830849999824,
+   "peak_rss_mb": 7853.3046875
+  },
+  {
+   "host": "Core Ultra 9 285H (64 GB)",
+   "backend": "ov",
+   "device": "GPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "openvino": "2026.4.1-22982-e213a147257-releases/2026/4",
+   "precision": "f32",
+   "config": {
+    "INFERENCE_PRECISION_HINT": "f32",
+    "GPU_ENABLE_LARGE_ALLOCATIONS": "YES"
+   },
+   "device_name": "Intel(R) Arc(TM) 140T GPU (32GB) (iGPU)",
+   "load_or_compile_s": 5.56298109999625,
+   "first_run_s": 17.431787599998643,
+   "times_s": [
+    17.362657099998614,
+    17.39555929999915,
+    17.383732000002055,
+    17.331901799996558,
+    17.458898700002464
+   ],
+   "mean_s": 17.38654977999977,
+   "p50_s": 17.383732000002055,
+   "min_s": 17.331901799996558,
+   "peak_rss_mb": 20848.52734375
+  },
+  {
+   "host": "Core Ultra 7 265F (64 GB)",
+   "backend": "torch",
+   "device": "CPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "torch": "2.14.1+cpu",
+   "torch_threads": 20,
+   "precision": "f32",
+   "load_or_compile_s": 5.253288499996415,
+   "first_run_s": 12.658572000000277,
+   "times_s": [
+    16.307032199998503,
+    16.127559100001235,
+    16.39008990000002,
+    16.507546799999545,
+    16.464593700002297
+   ],
+   "mean_s": 16.35936434000032,
+   "p50_s": 16.39008990000002,
+   "min_s": 16.127559100001235,
+   "peak_rss_mb": 1781.62890625
+  },
+  {
+   "host": "Core Ultra 7 265F (64 GB)",
+   "backend": "ov",
+   "device": "CPU",
+   "input_shape": [
+    1,
+    1,
+    192,
+    192,
+    192
+   ],
+   "runs": 5,
+   "openvino": "2026.4.1-22982-e213a147257-releases/2026/4",
+   "precision": "f32",
+   "config": {
+    "INFERENCE_PRECISION_HINT": "f32"
+   },
+   "device_name": "Intel(R) Core(TM) Ultra 7 265F",
+   "load_or_compile_s": 3.0435175000020536,
+   "first_run_s": 21.60444139999163,
+   "times_s": [
+    21.881972499992116,
+    21.89715289999731,
+    21.95082270000421,
+    21.951657000012347,
+    21.786971399997128
+   ],
+   "mean_s": 21.893715300000622,
+   "p50_s": 21.89715289999731,
+   "min_s": 21.786971399997128,
+   "peak_rss_mb": 7858.33203125
+  }
+ ],
+ "npu": "compile did not finish within 15 min on either host (desktop-session run); process killed"
+}
