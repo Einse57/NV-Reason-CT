@@ -570,6 +570,21 @@ case `s0050` (CC BY 4.0,
 `--max-new-tokens 160` produced the same text on `xpu` (bfloat16) as on
 `cpu` (float32).
 
+End-to-end chest report (`--disable-thinking`, greedy, up to 512 new tokens,
+13,844 prompt tokens). Total is preprocessing plus generation, after the model
+is loaded; time to first token includes the 3D encoder.
+
+| Case | Device | Dtype | Load (s) | Encoder (s) | First token (s) | Decode (tok/s) | New tokens | Total (s) |
+|---|---|---|---|---|---|---|---|---|
+| `s0050` | xpu (Arc 140T) | bfloat16 | 7.5 | 2.7 | 24.5 | 4.42 | 191 | 68.3 |
+| `s0050` | cpu | float32 | 30.2 | 21.6 | 206.9 | 2.66 | 191 | 279.1 |
+| `lung_001` | xpu (Arc 140T) | bfloat16 | 9.5 | 2.7 | 24.5 | 4.41 | 280 | 90.9 |
+| `lung_001` | cpu | float32 | 7.3 | 22.1 | 218.4 | 2.69 | 280 | 325.1 |
+
+For each case the `xpu` and `cpu` reports were byte-identical. `lung_001` is
+from the Medical Segmentation Decathlon, Task06 Lung (CC BY-SA 4.0); the volume
+is not redistributed here. XPU rows are the warm second run in the same process.
+
 ## License
 
 This repository is released under the [OpenMDW-1.1 license](LICENSE), the same
